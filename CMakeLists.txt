@@ -4,6 +4,7 @@ project(learn_ffmpeg C CXX)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 include_directories(/usr/local/include)
+include_directories(/usr/include)
 
 set(DEPENCES_LIBS
     gflags
@@ -13,6 +14,6 @@ set(DEPENCES_LIBS
     swscale
     pthread
     )
- 
+find_package(gflags REQUIRED)
  list(APPEND DEPENCES_LIBS opencv_core opencv_highgui opencv_imgproc opencv_imgcodecs opencv_dnn opencv_video)
  add_subdirectory(learn_decode)
