@@ -1,5 +1,0 @@
-{
-  "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
-  "git.ignoreLimitWarning": true,
-  "C_Cpp.errorSquiggles": "Disabled"
-}
