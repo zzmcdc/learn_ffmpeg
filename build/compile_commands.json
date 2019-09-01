@@ -1,7 +1,0 @@
-[
-{
-  "directory": "/work/learn/learn_ffmpeg/build",
-  "command": "/usr/bin/clang++-6.0  -DGFLAGS_IS_A_DLL=0 -I/usr/local/include -I/home/zhao/work/security/ranger-core/3rdparty/include    -o learn_decode/CMakeFiles/main.dir/main.cpp.o -c /work/learn/learn_ffmpeg/learn_decode/main.cpp",
-  "file": "/work/learn/learn_ffmpeg/learn_decode/main.cpp"
-}
-]

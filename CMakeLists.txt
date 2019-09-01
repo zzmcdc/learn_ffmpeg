@@ -14,6 +14,8 @@ set(DEPENCES_LIBS
     swscale
     pthread
     )
-find_package(gflags REQUIRED)
- list(APPEND DEPENCES_LIBS opencv_core opencv_highgui opencv_imgproc opencv_imgcodecs opencv_dnn opencv_video)
- add_subdirectory(learn_decode)
+#  list(APPEND DEPENCES_LIBS opencv_core opencv_highgui opencv_imgproc opencv_imgcodecs opencv_dnn opencv_video)
+#  add_subdirectory(learn_decode)
+message(STATUS $DEPENCES_LIBS)
+add_executable(decode_video examples/decode_video.c)
+target_link_libraries(decode_video ${DEPENCES_LIBS})

@@ -1,5 +1,0 @@
-/work/learn/learn_ffmpeg/build/CMakeFiles/rebuild_cache.dir
-/work/learn/learn_ffmpeg/build/CMakeFiles/edit_cache.dir
-/work/learn/learn_ffmpeg/build/learn_decode/CMakeFiles/rebuild_cache.dir
-/work/learn/learn_ffmpeg/build/learn_decode/CMakeFiles/edit_cache.dir
-/work/learn/learn_ffmpeg/build/learn_decode/CMakeFiles/main.dir
