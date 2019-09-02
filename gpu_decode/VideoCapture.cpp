@@ -102,7 +102,7 @@ struct VideoCapture {
         YUV444ToColorPlanar<BGRA32>(ppFrame[0], dec->GetWidth(), (uint8_t *)pTmpImage, dec->GetWidth(), dec->GetWidth(), dec->GetHeight());
       else
         Nv12ToColorPlanar<BGRA32>(ppFrame[0], dec->GetWidth(), (uint8_t *)pTmpImage, dec->GetWidth(), dec->GetWidth(), dec->GetHeight());
-      GetImage(pTmpImage, pImage, dec->GetWidth(), 3*dec->GetHeight());
+      GetImage(pTmpImage, pImage, dec->GetWidth(), 3 * dec->GetHeight());
     } else {
       if (dec->GetOutputFormat() == cudaVideoSurfaceFormat_YUV444_16Bit)
         YUV444P16ToColorPlanar<BGRA32>(ppFrame[0], 2 * dec->GetWidth(), (uint8_t *)pTmpImage, dec->GetWidth(), dec->GetWidth(), dec->GetHeight());
@@ -112,21 +112,39 @@ struct VideoCapture {
     }
     nFrame += nFrameReturned;
 
-    std::cout << dec->GetOutputFormat() << std::endl;
+    std::cout << "output format: " << dec->GetOutputFormat() << std::endl;
+    std::cout << "depth : " << dec->GetBitDepth() << std::endl;
     std::cout << "height:" << dec->GetHeight() << std::endl;
     std::cout << "width :" << dec->GetWidth() << std::endl;
     std::cout << "size :" << dec->GetFrameSize() << std::endl;
     std::cout << "nFramesize: " << nFrameSize << std::endl;
     std::cout << "nFrame Retured: " << nFrameReturned << std::endl;
     std::cout << "nVideoBytes:" << nVideoBytes << std::endl;
-    return cv::Mat(dec->GetHeight(), dec->GetWidth(), CV_8UC3, pImage);
+
+    std::vector<cv::Mat> channels;
+    cv::Mat b(nHeight, nWidth, CV_8UC1, pImage);
+    pImage += nHeight * nWidth;
+    cv::Mat g(nHeight, nWidth, CV_8UC1, pImage);
+    pImage += nHeight * nWidth;
+    cv::Mat r(nHeight, nWidth, CV_8UC1, pImage);
+
+    channels.push_back(b);
+    channels.push_back(g);
+    channels.push_back(r);
+
+    cv::Mat fig;
+    cv::merge(channels, fig);
+    cuMemFree(pTmpImage);
+    return fig;
   }
 };
 
 int main() {
 
-  VideoCapture video("/home/zhao/work/learn/learn_ffmpeg/test.mp4", 0);
-  cv::Mat result = video.read();
+  VideoCapture video("../test.mp4", 0);
+  cv::Mat result;
+  for (int i = 0; i < 100; ++i)
+    result = video.read();
 
   cv::imwrite("test.jpg", result);
 }
