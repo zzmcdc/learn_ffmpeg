@@ -14,6 +14,8 @@
 #include <libswscale/swscale.h>
 #include <memory>
 #include <opencv4/opencv2/opencv.hpp>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 #include <string>
 #include <thread>
 #include <utility>
@@ -154,19 +156,45 @@ struct VideoCapture {
   }
 };
 
-int main() {
+namespace py = pybind11;
 
-  VideoCapture video("../J502头_20190818180000_20190818190000.mp4", 0);
-  cv::Mat result;
-  clock_t start = clock();
+// PYBIND11_MODULE(video, m) { py::class_<VideoCapture>(m, "VideoCapture").def(py::init<std::string, int, std::vector<int>>()).def("read", &VideoCapture::read); }
 
-  while (!video.stop) {
-    result = video.read();
-    if ((video.nFrame % 100) == 0)
-      std::cout << video.nFrame << std::endl;
-  }
-  clock_t end = clock();
+PYBIND11_MODULE(video, m) {
 
-  std::cout << "cost :" << (double)(end - start) / CLOCKS_PER_SEC << std::endl;
-  cv::imwrite("test.jpg", result);
+  py::class_<VideoCapture>(m, "VideoCapture")
+    .def(py::init<std::string, int, std::vector<int>>())
+    .def("read", &VideoCapture::read)
+    .def_readonly("is_stop", &VideoCapture::stop);
+  pybind11::class_<cv::Mat>(m, "Image", pybind11::buffer_protocol()).def_buffer([](cv::Mat &im) -> pybind11::buffer_info {
+    return pybind11::buffer_info(
+        // Pointer to buffer
+        im.data,
+        // Size of one scalar
+        sizeof(unsigned char),
+        // Python struct-style format descriptor
+        pybind11::format_descriptor<unsigned char>::format(),
+        // Number of dimensions
+        3,
+        // Buffer dimensions
+        {im.rows, im.cols, im.channels()},
+        // Strides (in bytes) for each index
+        {sizeof(unsigned char) * im.channels() * im.cols, sizeof(unsigned char) * im.channels(), sizeof(unsigned char)});
+  });
 }
+// int main() {
+
+//   VideoCapture video("../J502头_20190818180000_20190818190000.mp4", 0);
+//   cv::Mat result;
+//   clock_t start = clock();
+
+//   while (!video.stop) {
+//     result = video.read();
+//     if ((video.nFrame % 100) == 0)
+//       std::cout << video.nFrame << std::endl;
+//   }
+//   clock_t end = clock();
+
+//   std::cout << "cost :" << (double)(end - start) / CLOCKS_PER_SEC << std::endl;
+//   cv::imwrite("test.jpg", result);
+// }
