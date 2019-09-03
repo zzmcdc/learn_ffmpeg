@@ -4,6 +4,7 @@
 #include "Utils/FFmpegDemuxer.h"
 #include "Utils/NvCodecUtils.h"
 #include <algorithm>
+#include <ctime>
 #include <cuda.h>
 #include <iostream>
 #include <libavcodec/avcodec.h>
@@ -53,6 +54,13 @@ struct VideoCapture {
   int nWidth, nHeight;
   int nFrameSize;
   OutputFormat eOutputFormat = bgrp;
+  bool stop;
+  CUdeviceptr pTmpImage;
+  uint8_t *pImage;
+  ~VideoCapture() {
+    cuMemFree(pTmpImage);
+    delete[] pImage;
+  }
 
   VideoCapture(std::string input_file, int gpu_id, std::vector<int> new_size = std::vector<int>()) : gpu_id_(gpu_id), input_file_(input_file) {
     if (new_size.size() > 0) {
@@ -62,6 +70,7 @@ struct VideoCapture {
       resizeDim_.h = 0;
       resizeDim_.w = 0;
     }
+    stop = false;
 
     ck(cuInit(0));
     int nGpu = 0;
@@ -77,23 +86,28 @@ struct VideoCapture {
     ck(cuCtxCreate(&cuContext, 0, cuDevice));
     demuxer = std::make_shared<FFmpegDemuxer>(input_file_.c_str());
 
+    nWidth = demuxer->GetWidth();
+    nHeight = demuxer->GetHeight();
+    nFrameSize = nWidth * nHeight * anSize[eOutputFormat];
+
+    cuMemAlloc(&pTmpImage, nWidth * nHeight * anSize[eOutputFormat]);
+    pImage = new uint8_t[nFrameSize];
     dec = std::make_shared<NvDecoder>(cuContext, demuxer->GetWidth(), demuxer->GetHeight(), true, FFmpeg2NvCodecId(demuxer->GetVideoCodec()), nullptr, false, false, &cropRect, &resizeDim_);
   }
 
   cv::Mat read() {
     // if (!nVideoBytes)
     // return cv::Mat();
-    nWidth = demuxer->GetWidth();
-    nHeight = demuxer->GetHeight();
-    nFrameSize = nWidth * nHeight * anSize[eOutputFormat];
+
     nFrameReturned = 0;
-    uint8_t *pImage = new uint8_t[nFrameSize];
-    CUdeviceptr pTmpImage = 0;
-    cuMemAlloc(&pTmpImage, nWidth * nHeight * anSize[eOutputFormat]);
 
     while (!nFrameReturned) {
       demuxer->Demux(&pVideo, &nVideoBytes);
       dec->Decode(pVideo, nVideoBytes, &ppFrame, &nFrameReturned);
+      if (!nVideoBytes) {
+        stop = true;
+        return cv::Mat();
+      }
     }
     nFrame += nFrameReturned;
 
@@ -110,41 +124,49 @@ struct VideoCapture {
         P016ToColorPlanar<BGRA32>(ppFrame[0], 2 * dec->GetWidth(), (uint8_t *)pTmpImage, dec->GetWidth(), dec->GetWidth(), dec->GetHeight());
       GetImage(pTmpImage, pImage, dec->GetWidth(), 3 * dec->GetHeight());
     }
-    nFrame += nFrameReturned;
 
-    std::cout << "output format: " << dec->GetOutputFormat() << std::endl;
-    std::cout << "depth : " << dec->GetBitDepth() << std::endl;
-    std::cout << "height:" << dec->GetHeight() << std::endl;
-    std::cout << "width :" << dec->GetWidth() << std::endl;
-    std::cout << "size :" << dec->GetFrameSize() << std::endl;
-    std::cout << "nFramesize: " << nFrameSize << std::endl;
-    std::cout << "nFrame Retured: " << nFrameReturned << std::endl;
-    std::cout << "nVideoBytes:" << nVideoBytes << std::endl;
+    // std::cout << "output format: " << dec->GetOutputFormat() << std::endl;
+    // std::cout << "depth : " << dec->GetBitDepth() << std::endl;
+    // std::cout << "height:" << dec->GetHeight() << std::endl;
+    // std::cout << "width :" << dec->GetWidth() << std::endl;
+    // std::cout << "size :" << dec->GetFrameSize() << std::endl;
+    // std::cout << "nFramesize: " << nFrameSize << std::endl;
+    // std::cout << "nFrame Retured: " << nFrameReturned << std::endl;
+    // std::cout << "nVideoBytes:" << nVideoBytes << std::endl;
 
-    std::vector<cv::Mat> channels;
-    cv::Mat b(nHeight, nWidth, CV_8UC1, pImage);
-    pImage += nHeight * nWidth;
-    cv::Mat g(nHeight, nWidth, CV_8UC1, pImage);
-    pImage += nHeight * nWidth;
-    cv::Mat r(nHeight, nWidth, CV_8UC1, pImage);
+    uint8_t *b = (uint8_t *)pImage;
+    uint8_t *g = (uint8_t *)pImage + nWidth * nHeight;
+    uint8_t *r = (uint8_t *)pImage + 2 * nWidth * nHeight;
 
-    channels.push_back(b);
-    channels.push_back(g);
-    channels.push_back(r);
+    cv::Mat img(nHeight, nWidth, CV_8UC3);
 
-    cv::Mat fig;
-    cv::merge(channels, fig);
-    cuMemFree(pTmpImage);
-    return fig;
+#pragma omp parallel for
+    for (int i = 0; i < img.rows; ++i) {
+      cv::Vec3b *p = img.ptr<cv::Vec3b>(i);
+      for (int j = 0; j < img.cols; ++j) {
+        int index = i * img.cols + j;
+        p[j][0] = b[index];
+        p[j][1] = g[index];
+        p[j][2] = r[index];
+      }
+    }
+    return img;
   }
 };
 
 int main() {
 
-  VideoCapture video("../test.mp4", 0);
+  VideoCapture video("../J502头_20190818180000_20190818190000.mp4", 0);
   cv::Mat result;
-  for (int i = 0; i < 100; ++i)
-    result = video.read();
+  clock_t start = clock();
 
+  while (!video.stop) {
+    result = video.read();
+    if ((video.nFrame % 100) == 0)
+      std::cout << video.nFrame << std::endl;
+  }
+  clock_t end = clock();
+
+  std::cout << "cost :" << (double)(end - start) / CLOCKS_PER_SEC << std::endl;
   cv::imwrite("test.jpg", result);
 }

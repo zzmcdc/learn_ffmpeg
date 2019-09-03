@@ -14,7 +14,7 @@ include common.mk
 
 NVCCFLAGS := $(CCFLAGS)
 
-LDFLAGS += -pthread
+LDFLAGS += -pthread -fopenmp
 LDFLAGS += -L$(CUDA_PATH)/lib64 -lcudart -lnvcuvid
 LDFLAGS += $(shell pkg-config --libs libavcodec libavutil libavformat opencv4)
 
@@ -26,18 +26,18 @@ all: build
 build: video
 
 NvDecoder.o: NvCodec/NvDecoder/NvDecoder.cpp NvCodec/NvDecoder/NvDecoder.h
-	$(GCC) -g $(CCFLAGS) $(INCLUDES) -o $@ -c $<
+	$(GCC) -O3 $(CCFLAGS) $(INCLUDES) -o $@ -c $<
 
 ColorSpace.o: Utils/ColorSpace.cu
-	$(NVCC)  -g $(NVCCFLAGS) $(INCLUDES) -o $@ -c $<
+	$(NVCC)  -O3 $(NVCCFLAGS) $(INCLUDES) -o $@ -c $<
 
 video.o: VideoCapture.cpp Utils/FFmpegDemuxer.h \
                        NvCodec/NvDecoder/NvDecoder.h Utils/NvCodecUtils.h \
                        Utils/Logger.h
-	$(GCC) -g $(CCFLAGS) $(INCLUDES) -o $@ -c $<
+	$(GCC) -O3 $(CCFLAGS) $(INCLUDES) -o $@ -c $<
 
 video: video.o ColorSpace.o NvDecoder.o
-	$(GCC) -g $(CCFLAGS) -o $@ $^ $(LDFLAGS)
+	$(GCC) -O3 $(CCFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:
 	rm -rf video video.o ColorSpace.o NvDecoder.o
