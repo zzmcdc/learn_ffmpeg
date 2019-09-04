@@ -42,4 +42,4 @@ video: video.o ColorSpace.so NvDecoder.o
 	$(GCC) -shared  -O3 -fPIC $(CCFLAGS) video.o ColorSpace.so NvDecoder.o -o video`python3-config --extension-suffix` $(LDFLAGS)
 
 clean:
-	rm -rf video video.o ColorSpace.o NvDecoder.o
+	rm -rf video`python3-config --extension-suffix` video.o ColorSpace.so NvDecoder.o
