@@ -33,9 +33,9 @@ NvDecoder.o: NvCodec/NvDecoder/NvDecoder.cpp NvCodec/NvDecoder/NvDecoder.h
 ColorSpace.so: Utils/ColorSpace.cu
 	$(NVCC)  -shared -Xcompiler  -fPIC -O3 $(NVCCFLAGS) Utils/ColorSpace.cu -o ColorSpace.so
 
-video.o: VideoCapture.cpp Utils/FFmpegDemuxer.h \
+video.o: VideoCapture.hpp Utils/FFmpegDemuxer.h \
                        NvCodec/NvDecoder/NvDecoder.h Utils/NvCodecUtils.h \
-                       Utils/Logger.h
+                       Utils/Logger.h VideoCapture.hpp 
 	$(GCC)  -O3 -fPIC $(CCFLAGS) $(INCLUDES) -o $@ -c $<
 
 video: video.o ColorSpace.so NvDecoder.o

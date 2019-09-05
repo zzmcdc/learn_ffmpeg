@@ -1,7 +1,19 @@
 {
-  "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
   "files.associations": {
     "iostream": "cpp",
-    "random": "cpp"
+    "random": "cpp",
+    "thread": "cpp",
+    "chrono": "cpp",
+    "*.tcc": "cpp",
+    "deque": "cpp",
+    "forward_list": "cpp",
+    "list": "cpp",
+    "string": "cpp",
+    "vector": "cpp",
+    "valarray": "cpp",
+    "__split_buffer": "cpp",
+    "array": "cpp",
+    "string_view": "cpp",
+    "iterator": "cpp"
   }
 }

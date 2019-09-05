@@ -1,0 +1,5 @@
+/home/zhao/work/learn/learn_ffmpeg/gpu_decode/build/CMakeFiles/rebuild_cache.dir
+/home/zhao/work/learn/learn_ffmpeg/gpu_decode/build/CMakeFiles/edit_cache.dir
+/home/zhao/work/learn/learn_ffmpeg/gpu_decode/build/CMakeFiles/video.dir
+/home/zhao/work/learn/learn_ffmpeg/gpu_decode/build/pybind11/CMakeFiles/rebuild_cache.dir
+/home/zhao/work/learn/learn_ffmpeg/gpu_decode/build/pybind11/CMakeFiles/edit_cache.dir
