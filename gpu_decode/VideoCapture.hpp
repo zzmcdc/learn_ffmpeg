@@ -4,7 +4,7 @@
 #include "Utils/ColorSpace.h"
 #include "Utils/FFmpegDemuxer.h"
 #include "Utils/NvCodecUtils.h"
-#include "include/concurrentqueue.h"
+#include "include/blockingconcurrentqueue.h"
 #include <algorithm>
 #include <chrono>
 #include <cuda.h>
@@ -174,7 +174,7 @@ public:
                  this->dec->GetHeight());
       this->image.push_back(data);
     }
-  
+
 #else
 
 #endif

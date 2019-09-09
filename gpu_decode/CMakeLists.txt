@@ -5,6 +5,8 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 include_directories(/usr/local/include)
 include_directories(/usr/include)
+include_directories(include)
+include_directories(Utils)
 add_subdirectory(pybind11)
 
 set(DEPENCES_LIBS
