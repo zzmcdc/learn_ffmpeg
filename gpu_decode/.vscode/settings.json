@@ -15,6 +15,7 @@
     "array": "cpp",
     "string_view": "cpp",
     "iterator": "cpp",
-    "ctime": "cpp"
+    "ctime": "cpp",
+    "ios": "cpp"
   }
 }

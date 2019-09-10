@@ -24,7 +24,7 @@
 #include <utility>
 #include <vector>
 
-#define USE_GPU_OUTPUT 1
+#define USE_GPU_OUTPUT 0
 
 simplelogger::Logger *logger =
     simplelogger::LoggerFactory::CreateConsoleLogger();
@@ -64,8 +64,10 @@ struct VideoCaptureBase {
   int nFrameSize;
   bool stop;
   CUdeviceptr pTmpImage;
-  std::function<void()> callback_;
-
+  std::function<void(CUdeviceptr &)> callback_;
+  void set_callback(std::function<void(CUdeviceptr &)> &func) {
+    callback_ = func;
+  }
   ~VideoCaptureBase() { cuMemFree(pTmpImage); }
 
   VideoCaptureBase(std::string input_file, int gpu_id,
@@ -100,7 +102,6 @@ struct VideoCaptureBase {
     nFrameSize = nWidth * nHeight * 3;
 
     cuMemAlloc(&pTmpImage, nWidth * nHeight * 3);
-    pImage = new uint8_t[nFrameSize];
     dec = std::make_shared<NvDecoder>(
         cuContext, demuxer->GetWidth(), demuxer->GetHeight(), true,
         FFmpeg2NvCodecId(demuxer->GetVideoCodec()), nullptr, false, false,
@@ -152,10 +153,12 @@ public:
   int width;
 
 #if USE_GPU_OUTPUT
-  std::vector<unsigned char *> image;
+  std::vector<uint8_t *> image;
 #else
+  uint8_t *pImage;
   std::vector<cv::Mat> image
 #endif
+
   std::shared_ptr<VideoCaptureBase> video;
 
   VideoCapture(std::string file_name, int gpu_id, std::vector<int> new_size)
@@ -165,17 +168,22 @@ public:
     height = video->nWidth;
     width = video->nHeight;
 #if USE_GPU_OUTPUT // use gpu data
-    auto call_back = [this]() {
-      unsigned char *data;
+    auto call_back_fun = [this]() {
+      uint8_t *data;
       size_t size = height * width * 3;
       cudaSetDevice(gpu_id);
       cudaMalloc((void **)&data, size * sizeof(uint8_t));
-      copy_image(this->pTmpImage, data, 3 * this->dec->GetWidth(),
-                 this->dec->GetHeight());
+      copy_image(video->pTmpImage, data, 3 * video->dec->GetWidth(),
+                 video->dec->GetHeight());
       this->image.push_back(data);
-    }
+    };
+    video.set_callback(call_back_fun);
 
 #else
+    pImage = new uint8_t[height * width * 3];
+    auto call_back_fun =[this])(){
+      copy_image(video->pTmpImage, pImage, )
+    }
 
 #endif
   }

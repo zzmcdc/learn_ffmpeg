@@ -65,6 +65,7 @@ build CMakeFiles/video.dir/VideoCapture.cpp.o: CXX_COMPILER__video ../VideoCaptu
   DEFINES = -Dvideo_EXPORTS
   DEP_FILE = CMakeFiles/video.dir/VideoCapture.cpp.o.d
   FLAGS = -g -fPIC
+  INCLUDES = -I../include -I../Utils
   OBJECT_DIR = CMakeFiles/video.dir
   OBJECT_FILE_DIR = CMakeFiles/video.dir
 
