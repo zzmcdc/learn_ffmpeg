@@ -179,9 +179,12 @@ struct VideoCapture {
   cv::Mat read() {
     if (video->stop) {
       stop = true;
-      return cv::Mat;
+      return cv::Mat();
     }
-    return image.pop_back();
+    cv::Mat img = image[image.size() - 1];
+
+    image.pop_back();
+    return img;
   }
 
 #endif
@@ -194,7 +197,7 @@ void call_back(CUdeviceptr buf, VideoCapture *video) {
   copy_image(buf, data, 3 * video->width, video->height);
   video->image.push_back(data);
 #else
-  copy_image(buf, video->pImage, 3 * video->width, self->height);
+  copy_image(buf, video->pImage, 3 * video->width, video->height);
   cv::Mat img(video->height, video->width, CV_8UC3);
 
 #pragma omp parallel for

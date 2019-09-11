@@ -11,7 +11,7 @@
 ################################################################################
 
 # Common definitions
-GCC ?= clang++
+GCC ?= g++
 
 CCFLAGS := -std=c++11
 
@@ -25,7 +25,7 @@ CUDA_PATH ?= /usr/local/cuda
 # Link applications against stub libraries provided in the SDKs.
 LDFLAGS := -L$(CUDA_PATH)/lib64/stubs
 LDFLAGS += -LLib/linux/stubs/$(shell uname -p)
-LDFLAGS += -ldl -lcuda
+LDFLAGS += -ldl -lcuda -fopenmp
 
 NVCC ?= $(CUDA_PATH)/bin/nvcc
 
