@@ -24,10 +24,9 @@
 #include <utility>
 #include <vector>
 
-#define USE_GPU_OUTPUT 0
+#define USE_GPU_OUTPUT 1
 
-simplelogger::Logger *logger =
-    simplelogger::LoggerFactory::CreateConsoleLogger();
+simplelogger::Logger *logger = simplelogger::LoggerFactory::CreateConsoleLogger();
 
 void copy_image(CUdeviceptr dpSrc, uint8_t *dDst, int nWidth, int nHeight) {
   CUDA_MEMCPY2D m = {0};
@@ -37,7 +36,7 @@ void copy_image(CUdeviceptr dpSrc, uint8_t *dDst, int nWidth, int nHeight) {
   m.srcMemoryType = CU_MEMORYTYPE_DEVICE;
   m.srcDevice = (CUdeviceptr)dpSrc;
   m.srcPitch = m.WidthInBytes;
-#if USE_GPU_OUTPUT
+#if defined(USE_GPU_OUTPUT)
   m.dstMemoryType = CU_MEMORYTYPE_DEVICE;
 #else
   m.dstMemoryType = CU_MEMORYTYPE_HOST;
@@ -64,15 +63,10 @@ struct VideoCaptureBase {
   int nFrameSize;
   bool stop;
   CUdeviceptr pTmpImage;
-  std::function<void(CUdeviceptr &)> callback_;
-  void set_callback(std::function<void(CUdeviceptr &)> &func) {
-    callback_ = func;
-  }
+  std::function<void(CUdeviceptr data)> call_back_;
   ~VideoCaptureBase() { cuMemFree(pTmpImage); }
 
-  VideoCaptureBase(std::string input_file, int gpu_id,
-                   std::vector<int> new_size = std::vector<int>())
-      : gpu_id_(gpu_id), input_file_(input_file) {
+  VideoCaptureBase(std::string input_file, int gpu_id, std::vector<int> new_size = std::vector<int>()) : gpu_id_(gpu_id), input_file_(input_file) {
     if (new_size.size() > 0) {
       resizeDim_.h = new_size[0];
       resizeDim_.w = new_size[1];
@@ -86,8 +80,7 @@ struct VideoCaptureBase {
     int nGpu = 0;
     ck(cuDeviceGetCount(&nGpu));
     if (gpu_id_ < 0 || gpu_id_ >= nGpu) {
-      std::cout << "GPU ordinal out of range. Should be within [" << 0 << ", "
-                << nGpu - 1 << "]" << std::endl;
+      std::cout << "GPU ordinal out of range. Should be within [" << 0 << ", " << nGpu - 1 << "]" << std::endl;
       exit(0);
     }
 
@@ -102,10 +95,7 @@ struct VideoCaptureBase {
     nFrameSize = nWidth * nHeight * 3;
 
     cuMemAlloc(&pTmpImage, nWidth * nHeight * 3);
-    dec = std::make_shared<NvDecoder>(
-        cuContext, demuxer->GetWidth(), demuxer->GetHeight(), true,
-        FFmpeg2NvCodecId(demuxer->GetVideoCodec()), nullptr, false, false,
-        &cropRect, &resizeDim_);
+    dec = std::make_shared<NvDecoder>(cuContext, demuxer->GetWidth(), demuxer->GetHeight(), true, FFmpeg2NvCodecId(demuxer->GetVideoCodec()), nullptr, false, false, &cropRect, &resizeDim_);
   }
 
   void decode() {
@@ -118,73 +108,106 @@ struct VideoCaptureBase {
       for (int i = 0; i < nFrameReturned; i++) {
         if (dec->GetBitDepth() == 8) {
           if (dec->GetOutputFormat() == cudaVideoSurfaceFormat_YUV444)
-            YUV444ToColorPlanar<BGRA32>(ppFrame[i], dec->GetWidth(),
-                                        (uint8_t *)pTmpImage, dec->GetWidth(),
-                                        dec->GetWidth(), dec->GetHeight());
+            YUV444ToColorPlanar<BGRA32>(ppFrame[i], dec->GetWidth(), (uint8_t *)pTmpImage, dec->GetWidth(), dec->GetWidth(), dec->GetHeight());
           else
-            Nv12ToColorPlanar<BGRA32>(ppFrame[i], dec->GetWidth(),
-                                      (uint8_t *)pTmpImage, dec->GetWidth(),
-                                      dec->GetWidth(), dec->GetHeight());
+            Nv12ToColorPlanar<BGRA32>(ppFrame[i], dec->GetWidth(), (uint8_t *)pTmpImage, dec->GetWidth(), dec->GetWidth(), dec->GetHeight());
           // GetImage(pTmpImage, pImage, 3 * dec->GetWidth(), dec->GetHeight());
         } else {
           if (dec->GetOutputFormat() == cudaVideoSurfaceFormat_YUV444_16Bit)
-            YUV444P16ToColorPlanar<BGRA32>(
-                ppFrame[i], 2 * dec->GetWidth(), (uint8_t *)pTmpImage,
-                dec->GetWidth(), dec->GetWidth(), dec->GetHeight());
+            YUV444P16ToColorPlanar<BGRA32>(ppFrame[i], 2 * dec->GetWidth(), (uint8_t *)pTmpImage, dec->GetWidth(), dec->GetWidth(), dec->GetHeight());
           else
-            P016ToColorPlanar<BGRA32>(ppFrame[i], 2 * dec->GetWidth(),
-                                      (uint8_t *)pTmpImage, dec->GetWidth(),
-                                      dec->GetWidth(), dec->GetHeight());
+            P016ToColorPlanar<BGRA32>(ppFrame[i], 2 * dec->GetWidth(), (uint8_t *)pTmpImage, dec->GetWidth(), dec->GetWidth(), dec->GetHeight());
+
           // GetImage(pTmpImage, pImage, 3 * dec->GetWidth(), dec->GetHeight());
         }
-        callback_(pTmpImage);
+
+        call_back_(pTmpImage);
       }
     } while (nVideoBytes);
     stop = true;
   }
+  static void get_frame(VideoCaptureBase *video) { video->decode(); }
 };
-class VideoCapture() {
-public:
+
+struct VideoCapture;
+void call_back(CUdeviceptr buf, VideoCapture *video);
+
+struct VideoCapture {
   std::string filename;
   int gpu_id;
   std::vector<int> resize;
   std::shared_ptr<std::thread> worker;
   int height;
   int width;
-
-#if USE_GPU_OUTPUT
+  bool stop;
+#if defined(USE_GPU_OUTPUT)
   std::vector<uint8_t *> image;
 #else
+  std::vector<cv::Mat> image;
   uint8_t *pImage;
-  std::vector<cv::Mat> image
 #endif
 
   std::shared_ptr<VideoCaptureBase> video;
 
-  VideoCapture(std::string file_name, int gpu_id, std::vector<int> new_size)
-      : filename(file_name), gpu_id(gpu_id), resize(new_resize) {
+  VideoCapture(std::string file_name, int gpu_id, std::vector<int> new_size) : filename(file_name), gpu_id(gpu_id), resize(new_size) {
 
     video = std::make_shared<VideoCaptureBase>(filename, gpu_id, resize);
     height = video->nWidth;
     width = video->nHeight;
-#if USE_GPU_OUTPUT // use gpu data
-    auto call_back_fun = [this]() {
-      uint8_t *data;
-      size_t size = height * width * 3;
-      cudaSetDevice(gpu_id);
-      cudaMalloc((void **)&data, size * sizeof(uint8_t));
-      copy_image(video->pTmpImage, data, 3 * video->dec->GetWidth(),
-                 video->dec->GetHeight());
-      this->image.push_back(data);
-    };
-    video.set_callback(call_back_fun);
 
+#if defined(USE_GPU_OUTPUT) // use gpu data
+    video->call_back_ = bind(call_back, std::placeholders::_1, this);
 #else
     pImage = new uint8_t[height * width * 3];
-    auto call_back_fun =[this])(){
-      copy_image(video->pTmpImage, pImage, )
+    video->call_back_ = bind(call_back, std::placeholders::_1, this);
+#endif
+    worker = std::make_shared<std::thread>(VideoCaptureBase::get_frame, this);
+  }
+
+#if defined(USE_GPU_OUTPUT)
+  uint8_t *read() {
+    if (video->stop) {
+      return nullptr;
+      stop = true;
     }
+    uint8_t *out = image[image.size() - 1];
+    image.pop_back();
+    return out;
+  }
+#else
+
+  cv::Mat read() {
+    if (video->stop) {
+      stop = true;
+      return cv::Mat;
+    }
+    return image.pop_back();
+  }
 
 #endif
+};
+
+void call_back(CUdeviceptr buf, VideoCapture *video) {
+  uint8_t *data;
+#if defined(USE_GPU_OUTPUT)
+  cudaMalloc((void **)&data, video->video->nFrameSize * sizeof(uint8_t));
+  copy_image(buf, data, 3 * video->width, video->height);
+  video->image.push_back(data);
+#else
+  copy_image(buf, video->pImage, 3 * video->width, self->height);
+  cv::Mat img(video->height, video->width, CV_8UC3);
+
+#pragma omp parallel for
+  for (int i = 0; i < img.rows; ++i) {
+    cv::Vec3b *p = img.ptr<cv::Vec3b>(i);
+    for (int j = 0; j < img.cols; ++j) {
+      int index = 3 * i * img.cols + j;
+      p[j][0] = video->pImage[index];
+      p[j][1] = video->pImage[index + 1];
+      p[j][2] = video->pImage[index + 2];
+    }
   }
+  video->image.push_back(img);
+
+#endif
 }
