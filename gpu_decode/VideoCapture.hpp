@@ -64,7 +64,10 @@ struct VideoCaptureBase {
   bool stop;
   CUdeviceptr pTmpImage;
   std::function<void(CUdeviceptr data)> call_back_;
-  ~VideoCaptureBase() { cuMemFree(pTmpImage); }
+  ~VideoCaptureBase() {
+    cuMemFree(pTmpImage);
+    ck(cuCtxDestroy(cuContext));
+  }
 
   VideoCaptureBase(std::string input_file, int gpu_id, std::vector<int> new_size = std::vector<int>()) : gpu_id_(gpu_id), input_file_(input_file) {
     if (new_size.size() > 0) {
