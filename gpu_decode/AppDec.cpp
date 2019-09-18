@@ -17,12 +17,9 @@
 #include <iostream>
 #include <thread>
 
+simplelogger::Logger *logger = simplelogger::LoggerFactory::CreateConsoleLogger();
 
-simplelogger::Logger *logger =
-    simplelogger::LoggerFactory::CreateConsoleLogger();
-
-void ConvertSemiplanarToPlanar(uint8_t *pHostFrame, int nWidth, int nHeight,
-                               int nBitDepth) {
+void ConvertSemiplanarToPlanar(uint8_t *pHostFrame, int nWidth, int nHeight, int nBitDepth) {
   if (nBitDepth == 8) {
     // nv12->iyuv
     YuvConverter<uint8_t> converter8(nWidth, nHeight);
@@ -34,9 +31,7 @@ void ConvertSemiplanarToPlanar(uint8_t *pHostFrame, int nWidth, int nHeight,
   }
 }
 
-void DecodeMediaFile(CUcontext cuContext, const char *szInFilePath,
-                     const char *szOutFilePath, bool bOutPlanar,
-                     const Rect &cropRect, const Dim &resizeDim) {
+void DecodeMediaFile(CUcontext cuContext, const char *szInFilePath, const char *szOutFilePath, bool bOutPlanar, const Rect &cropRect, const Dim &resizeDim) {
   std::ofstream fpOut(szOutFilePath, std::ios::out | std::ios::binary);
   if (!fpOut) {
     std::ostringstream err;
@@ -45,9 +40,7 @@ void DecodeMediaFile(CUcontext cuContext, const char *szInFilePath,
   }
 
   FFmpegDemuxer demuxer(szInFilePath);
-  NvDecoder dec(cuContext, demuxer.GetWidth(), demuxer.GetHeight(), false,
-                FFmpeg2NvCodecId(demuxer.GetVideoCodec()), NULL, false, false,
-                &cropRect, &resizeDim);
+  NvDecoder dec(cuContext, demuxer.GetWidth(), demuxer.GetHeight(), false, FFmpeg2NvCodecId(demuxer.GetVideoCodec()), NULL, false, false, &cropRect, &resizeDim);
 
   int nVideoBytes = 0, nFrameReturned = 0, nFrame = 0;
   uint8_t *pVideo = NULL, **ppFrame;
@@ -58,30 +51,23 @@ void DecodeMediaFile(CUcontext cuContext, const char *szInFilePath,
     if (!nFrame && nFrameReturned)
       LOG(INFO) << dec.GetVideoInfo();
 
-    bDecodeOutSemiPlanar =
-        (dec.GetOutputFormat() == cudaVideoSurfaceFormat_NV12) ||
-        (dec.GetOutputFormat() == cudaVideoSurfaceFormat_P016);
+    bDecodeOutSemiPlanar = (dec.GetOutputFormat() == cudaVideoSurfaceFormat_NV12) || (dec.GetOutputFormat() == cudaVideoSurfaceFormat_P016);
 
     for (int i = 0; i < nFrameReturned; i++) {
       if (bOutPlanar && bDecodeOutSemiPlanar) {
-        ConvertSemiplanarToPlanar(ppFrame[i], dec.GetWidth(), dec.GetHeight(),
-                                  dec.GetBitDepth());
+        ConvertSemiplanarToPlanar(ppFrame[i], dec.GetWidth(), dec.GetHeight(), dec.GetBitDepth());
       }
       fpOut.write(reinterpret_cast<char *>(ppFrame[i]), dec.GetFrameSize());
     }
     nFrame += nFrameReturned;
   } while (nVideoBytes);
 
-  std::vector<std::string> aszDecodeOutFormat = {"NV12", "P016", "YUV444",
-                                                 "YUV444P16"};
+  std::vector<std::string> aszDecodeOutFormat = {"NV12", "P016", "YUV444", "YUV444P16"};
   if (bOutPlanar) {
     aszDecodeOutFormat[0] = "iyuv";
     aszDecodeOutFormat[1] = "yuv420p16";
   }
-  std::cout << "Total frame decoded: " << nFrame << std::endl
-            << "Saved in file " << szOutFilePath << " in "
-            << aszDecodeOutFormat[dec.GetOutputFormat()] << " format"
-            << std::endl;
+  std::cout << "Total frame decoded: " << nFrame << std::endl << "Saved in file " << szOutFilePath << " in " << aszDecodeOutFormat[dec.GetOutputFormat()] << " format" << std::endl;
   fpOut.close();
 }
 
@@ -90,27 +76,14 @@ void ShowDecoderCapability() {
   int nGpu = 0;
   ck(cuDeviceGetCount(&nGpu));
   std::cout << "Decoder Capability" << std::endl << std::endl;
-  const char *aszCodecName[] = {
-      "JPEG", "MPEG1", "MPEG2", "MPEG4", "H264", "HEVC", "HEVC", "HEVC",
-      "HEVC", "HEVC",  "HEVC",  "VC1",   "VP8",  "VP9",  "VP9",  "VP9"};
+  const char *aszCodecName[] = {"JPEG", "MPEG1", "MPEG2", "MPEG4", "H264", "HEVC", "HEVC", "HEVC", "HEVC", "HEVC", "HEVC", "VC1", "VP8", "VP9", "VP9", "VP9"};
   const char *aszChromaFormat[] = {"4:0:0", "4:2:0", "4:2:2", "4:4:4"};
-  cudaVideoCodec aeCodec[] = {
-      cudaVideoCodec_JPEG,  cudaVideoCodec_MPEG1, cudaVideoCodec_MPEG2,
-      cudaVideoCodec_MPEG4, cudaVideoCodec_H264,  cudaVideoCodec_HEVC,
-      cudaVideoCodec_HEVC,  cudaVideoCodec_HEVC,  cudaVideoCodec_HEVC,
-      cudaVideoCodec_HEVC,  cudaVideoCodec_HEVC,  cudaVideoCodec_VC1,
-      cudaVideoCodec_VP8,   cudaVideoCodec_VP9,   cudaVideoCodec_VP9,
-      cudaVideoCodec_VP9};
+  cudaVideoCodec aeCodec[] = {cudaVideoCodec_JPEG, cudaVideoCodec_MPEG1, cudaVideoCodec_MPEG2, cudaVideoCodec_MPEG4, cudaVideoCodec_H264, cudaVideoCodec_HEVC, cudaVideoCodec_HEVC, cudaVideoCodec_HEVC,
+                              cudaVideoCodec_HEVC, cudaVideoCodec_HEVC,  cudaVideoCodec_HEVC,  cudaVideoCodec_VC1,   cudaVideoCodec_VP8,  cudaVideoCodec_VP9,  cudaVideoCodec_VP9,  cudaVideoCodec_VP9};
   int anBitDepthMinus8[] = {0, 0, 0, 0, 0, 0, 2, 4, 0, 2, 4, 0, 0, 0, 2, 4};
-  cudaVideoChromaFormat aeChromaFormat[] = {
-      cudaVideoChromaFormat_420, cudaVideoChromaFormat_420,
-      cudaVideoChromaFormat_420, cudaVideoChromaFormat_420,
-      cudaVideoChromaFormat_420, cudaVideoChromaFormat_420,
-      cudaVideoChromaFormat_420, cudaVideoChromaFormat_420,
-      cudaVideoChromaFormat_444, cudaVideoChromaFormat_444,
-      cudaVideoChromaFormat_444, cudaVideoChromaFormat_420,
-      cudaVideoChromaFormat_420, cudaVideoChromaFormat_420,
-      cudaVideoChromaFormat_420, cudaVideoChromaFormat_420};
+  cudaVideoChromaFormat aeChromaFormat[] = {cudaVideoChromaFormat_420, cudaVideoChromaFormat_420, cudaVideoChromaFormat_420, cudaVideoChromaFormat_420, cudaVideoChromaFormat_420, cudaVideoChromaFormat_420,
+                                            cudaVideoChromaFormat_420, cudaVideoChromaFormat_420, cudaVideoChromaFormat_444, cudaVideoChromaFormat_444, cudaVideoChromaFormat_444, cudaVideoChromaFormat_420,
+                                            cudaVideoChromaFormat_420, cudaVideoChromaFormat_420, cudaVideoChromaFormat_420, cudaVideoChromaFormat_420};
   for (int iGpu = 0; iGpu < nGpu; iGpu++) {
     CUdevice cuDevice = 0;
     ck(cuDeviceGet(&cuDevice, iGpu));
@@ -119,8 +92,7 @@ void ShowDecoderCapability() {
     CUcontext cuContext = NULL;
     ck(cuCtxCreate(&cuContext, 0, cuDevice));
 
-    std::cout << "GPU " << iGpu << " - " << szDeviceName << std::endl
-              << std::endl;
+    std::cout << "GPU " << iGpu << " - " << szDeviceName << std::endl << std::endl;
     for (int i = 0; i < sizeof(aeCodec) / sizeof(aeCodec[0]); i++) {
       CUVIDDECODECAPS decodeCaps = {};
       decodeCaps.eCodecType = aeCodec[i];
@@ -130,10 +102,8 @@ void ShowDecoderCapability() {
       cuvidGetDecoderCaps(&decodeCaps);
       std::cout << "Codec"
                 << "  " << aszCodecName[i] << '\t' << "BitDepth"
-                << "  " << decodeCaps.nBitDepthMinus8 + 8 << '\t'
-                << "ChromaFormat"
-                << "  " << aszChromaFormat[decodeCaps.eChromaFormat] << '\t'
-                << "Supported"
+                << "  " << decodeCaps.nBitDepthMinus8 + 8 << '\t' << "ChromaFormat"
+                << "  " << aszChromaFormat[decodeCaps.eChromaFormat] << '\t' << "Supported"
                 << "  " << (int)decodeCaps.bIsSupported << '\t' << "MaxWidth"
                 << "  " << decodeCaps.nMaxWidth << '\t' << "MaxHeight"
                 << "  " << decodeCaps.nMaxHeight << '\t' << "MaxMBCount"
@@ -163,8 +133,7 @@ void ShowHelpAndExit(const char *szBadOption = NULL) {
       << "-crop l,t,r,b  Crop rectangle in left,top,right,bottom (ignored for "
          "case 0)"
       << std::endl
-      << "-resize WxH    Resize to dimension W times H (ignored for case 0)"
-      << std::endl;
+      << "-resize WxH    Resize to dimension W times H (ignored for case 0)" << std::endl;
   oss << std::endl;
   if (bThrowError) {
     throw std::invalid_argument(oss.str());
@@ -175,9 +144,7 @@ void ShowHelpAndExit(const char *szBadOption = NULL) {
   }
 }
 
-void ParseCommandLine(int argc, char *argv[], char *szInputFileName,
-                      char *szOutputFileName, bool &bOutPlanar, int &iGpu,
-                      Rect &cropRect, Dim &resizeDim) {
+void ParseCommandLine(int argc, char *argv[], char *szInputFileName, char *szOutputFileName, bool &bOutPlanar, int &iGpu, Rect &cropRect, Dim &resizeDim) {
   std::ostringstream oss;
   int i;
   for (i = 1; i < argc; i++) {
@@ -210,27 +177,21 @@ void ParseCommandLine(int argc, char *argv[], char *szInputFileName,
       continue;
     }
     if (!_stricmp(argv[i], "-crop")) {
-      if (++i == argc ||
-          4 != sscanf(argv[i], "%d,%d,%d,%d", &cropRect.l, &cropRect.t,
-                      &cropRect.r, &cropRect.b)) {
+      if (++i == argc || 4 != sscanf(argv[i], "%d,%d,%d,%d", &cropRect.l, &cropRect.t, &cropRect.r, &cropRect.b)) {
         ShowHelpAndExit("-crop");
       }
-      if ((cropRect.r - cropRect.l) % 2 == 1 ||
-          (cropRect.b - cropRect.t) % 2 == 1) {
-        std::cout << "Cropping rect must have width and height of even numbers"
-                  << std::endl;
+      if ((cropRect.r - cropRect.l) % 2 == 1 || (cropRect.b - cropRect.t) % 2 == 1) {
+        std::cout << "Cropping rect must have width and height of even numbers" << std::endl;
         exit(1);
       }
       continue;
     }
     if (!_stricmp(argv[i], "-resize")) {
-      if (++i == argc ||
-          2 != sscanf(argv[i], "%dx%d", &resizeDim.w, &resizeDim.h)) {
+      if (++i == argc || 2 != sscanf(argv[i], "%dx%d", &resizeDim.w, &resizeDim.h)) {
         ShowHelpAndExit("-resize");
       }
       if (resizeDim.w % 2 == 1 || resizeDim.h % 2 == 1) {
-        std::cout << "Resizing rect must have width and height of even numbers"
-                  << std::endl;
+        std::cout << "Resizing rect must have width and height of even numbers" << std::endl;
         exit(1);
       }
       continue;
@@ -254,8 +215,7 @@ int main(int argc, char **argv) {
   Rect cropRect = {};
   Dim resizeDim = {};
   try {
-    ParseCommandLine(argc, argv, szInFilePath, szOutFilePath, bOutPlanar, iGpu,
-                     cropRect, resizeDim);
+    ParseCommandLine(argc, argv, szInFilePath, szOutFilePath, bOutPlanar, iGpu, cropRect, resizeDim);
     CheckInputFile(szInFilePath);
 
     if (!*szOutFilePath) {
@@ -266,8 +226,7 @@ int main(int argc, char **argv) {
     int nGpu = 0;
     ck(cuDeviceGetCount(&nGpu));
     if (iGpu < 0 || iGpu >= nGpu) {
-      std::cout << "GPU ordinal out of range. Should be within [" << 0 << ", "
-                << nGpu - 1 << "]" << std::endl;
+      std::cout << "GPU ordinal out of range. Should be within [" << 0 << ", " << nGpu - 1 << "]" << std::endl;
       return 1;
     }
     CUdevice cuDevice = 0;
@@ -279,8 +238,7 @@ int main(int argc, char **argv) {
     ck(cuCtxCreate(&cuContext, 0, cuDevice));
 
     std::cout << "Decode with demuxing." << std::endl;
-    DecodeMediaFile(cuContext, szInFilePath, szOutFilePath, bOutPlanar,
-                    cropRect, resizeDim);
+    DecodeMediaFile(cuContext, szInFilePath, szOutFilePath, bOutPlanar, cropRect, resizeDim);
   } catch (const std::exception &ex) {
     std::cout << ex.what();
     exit(1);

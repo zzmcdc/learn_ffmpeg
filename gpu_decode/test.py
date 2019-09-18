@@ -1,8 +1,7 @@
 import numpy as np
 import cv2
-import video
-
-v = video.VideoCapture('../test.mp4',0,(0,0))
+from gpu_code.VideoCapture import VideoCapture
+v = VideoCapture('../test.mp4',0)
 
 for _ in range(100):
     img = np.array(v.read(), copy=False)

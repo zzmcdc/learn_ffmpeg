@@ -28,18 +28,18 @@ all: build
 build: video
 
 NvDecoder.o: NvCodec/NvDecoder/NvDecoder.cpp NvCodec/NvDecoder/NvDecoder.h
-	$(GCC) -O3 -fPIC $(CCFLAGS) $(INCLUDES) -o $@ -c $<
+	$(GCC)  -fPIC $(CCFLAGS) $(INCLUDES) -o $@ -c $<
 
 ColorSpace.o: Utils/ColorSpace.cu
-	$(NVCC)   -Xcompiler  -fPIC -O3 $(NVCCFLAGS) -o $@ -c $<
+	$(NVCC)   -Xcompiler  -fPIC  $(NVCCFLAGS) -o $@ -c $<
 
 video.o: VideoCapture.cpp Utils/FFmpegDemuxer.h \
                        NvCodec/NvDecoder/NvDecoder.h Utils/NvCodecUtils.h \
                        Utils/Logger.h VideoCapture.hpp
-	$(GCC)  -O3 -fPIC $(CCFLAGS) $(INCLUDES) -o $@ -c $<
+	$(GCC)   -fPIC $(CCFLAGS) $(INCLUDES) -o $@ -c $<
 
 video: video.o ColorSpace.o NvDecoder.o
-	$(GCC) -shared  -O3 -fPIC $(CCFLAGS) video.o ColorSpace.o NvDecoder.o -o video`python3-config --extension-suffix` $(LDFLAGS)
+	$(GCC) -shared   -fPIC $(CCFLAGS) video.o ColorSpace.o NvDecoder.o -o video`python3-config --extension-suffix` $(LDFLAGS)
 
 clean:
-	rm -rf video`python3-config --extension-suffix` video.o ColorSpace.so NvDecoder.o
+	rm -rf video`python3-config --extension-suffix` video.o ColorSpace.o NvDecoder.o
