@@ -1,0 +1,3 @@
+[submodule "gpu_decode/dlpack"]
+	path = gpu_decode/dlpack
+	url = https://github.com/dmlc/dlpack.git

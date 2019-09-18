@@ -1,7 +1,0 @@
-[
-{
-  "directory": "/home/zhao/work/learn/learn_ffmpeg/gpu_decode/build",
-  "command": "/usr/bin/clang++-6.0  -Dvideo_EXPORTS -I../include -I../Utils  -g -fPIC   -o CMakeFiles/video.dir/VideoCapture.cpp.o -c /home/zhao/work/learn/learn_ffmpeg/gpu_decode/VideoCapture.cpp",
-  "file": "/home/zhao/work/learn/learn_ffmpeg/gpu_decode/VideoCapture.cpp"
-}
-]
