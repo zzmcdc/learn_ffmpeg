@@ -7,7 +7,7 @@ include_directories(/usr/local/include)
 include_directories(/usr/include)
 include_directories(include)
 include_directories(Utils)
-add_subdirectory(pybind11)
+include_directories(dlpack/include)
 
 set(DEPENCES_LIBS
     gflags
@@ -19,5 +19,5 @@ set(DEPENCES_LIBS
     )
 #  list(APPEND DEPENCES_LIBS opencv_core opencv_highgui opencv_imgproc opencv_imgcodecs opencv_dnn opencv_video)
 #  add_subdirectory(learn_decode)
-add_library(video SHARED VideoCapture.cpp)
+add_library(video SHARED VideoCapture.hpp)
 target_link_libraries(video ${DEPENCES_LIBS})

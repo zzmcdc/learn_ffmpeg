@@ -1,3 +1,4 @@
 build/*
 *.o
 .vscode/*
+gpu_decode/build/*
