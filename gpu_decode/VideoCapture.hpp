@@ -27,7 +27,7 @@
 
 simplelogger::Logger *logger = simplelogger::LoggerFactory::CreateConsoleLogger();
 
-void copy_image(CUdeviceptr dpSrc, uint8_t *dDst, int nWidth, int nHeight, bool gpu_output) {
+void copy_image_cpu(CUdeviceptr dpSrc, uint8_t *dDst, int nWidth, int nHeight) {
   CUDA_MEMCPY2D m = {0};
   m.WidthInBytes = nWidth;
   m.Height = nHeight;
@@ -73,10 +73,8 @@ struct VideoCapture {
   int nFrameSize;
   bool stop;
   CUdeviceptr pTmpImage;
-  uint8_t *pImage;
   ~VideoCapture() {
     cuMemFree(pTmpImage);
-    delete[] pImage;
     delete dec;
     ck(cuCtxDestroy(cuContext));
   }
@@ -112,12 +110,11 @@ struct VideoCapture {
     nFrameSize = nWidth * nHeight * 3;
 
     cuMemAlloc(&pTmpImage, nWidth * nHeight * 3);
-    pImage = new uint8_t[nFrameSize];
     dec = new NvDecoder(cuContext, demuxer->GetWidth(), demuxer->GetHeight(), true,
                         FFmpeg2NvCodecId(demuxer->GetVideoCodec()), nullptr, false, false, &cropRect, &resizeDim_);
   }
 
-  cv::Mat read() {
+  DLManagedTensor *read() {
 
     nFrameReturned = 0;
 
@@ -138,7 +135,7 @@ struct VideoCapture {
       else
         Nv12ToColorPlanar<BGRA32>(ppFrame[0], dec->GetWidth(), (uint8_t *)pTmpImage, dec->GetWidth(), dec->GetWidth(),
                                   dec->GetHeight());
-      copy_image_cpu(pTmpImage, pImage, dec->GetWidth(), 3 * dec->GetHeight());
+      // copy_image_cpu(pTmpImage, pImage, dec->GetWidth(), 3 * dec->GetHeight());
     } else {
       if (dec->GetOutputFormat() == cudaVideoSurfaceFormat_YUV444_16Bit)
         YUV444P16ToColorPlanar<BGRA32>(ppFrame[0], 2 * dec->GetWidth(), (uint8_t *)pTmpImage, dec->GetWidth(),
@@ -146,7 +143,21 @@ struct VideoCapture {
       else
         P016ToColorPlanar<BGRA32>(ppFrame[0], 2 * dec->GetWidth(), (uint8_t *)pTmpImage, dec->GetWidth(),
                                   dec->GetWidth(), dec->GetHeight());
-      copy_image_cpu(pTmpImage, pImage, dec->GetWidth(), 3 * dec->GetHeight());
+      // copy_image_cpu(pTmpImage, pImage, dec->GetWidth(), 3 * dec->GetHeight());
     }
+    uint_8 *pImage;
+    if (gpu_output) {
+      cudaMalloc((void **)&pImage, nFrameSize);
+      copy_image_gpu(pTmpImage, pImage, 3 * nHeight, nWidth);
+
+    } else {
+      pImage = new uint8_t[nFrameSize];
+      copy_image_cpu(pTmpImage, pImage, 3 * nHeight, nWidth);
+    }
+
+    DLManagedTensor *dltensor = new DLManagedTensor;
+    dltensor->dl_tensor.data = pImage;
+    
+
   };
 }
