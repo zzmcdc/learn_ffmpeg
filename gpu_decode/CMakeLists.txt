@@ -20,7 +20,7 @@ set(DEPENCES_LIBS
     avcodec
     swscale
     pthread
-    cuart
+    # cuart
     dl 
     cuda
     )

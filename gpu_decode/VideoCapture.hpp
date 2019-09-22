@@ -1,4 +1,3 @@
-#pragma once
 
 #include "NvDecoder/NvDecoder.h"
 #include "Utils/ColorSpace.h"
@@ -8,7 +7,6 @@
 #include <algorithm>
 #include <chrono>
 #include <cuda.h>
-#include <deque>
 #include <deque>
 #include <dlpack/dlpack.h>
 #include <functional>
@@ -145,19 +143,56 @@ struct VideoCapture {
                                   dec->GetWidth(), dec->GetHeight());
       // copy_image_cpu(pTmpImage, pImage, dec->GetWidth(), 3 * dec->GetHeight());
     }
-    uint_8 *pImage;
+    uint8_t *pImage;
     if (gpu_output) {
       cudaMalloc((void **)&pImage, nFrameSize);
       copy_image_gpu(pTmpImage, pImage, 3 * nHeight, nWidth);
+      DLManagedTensor *dltensor = new DLManagedTensor;
+      dltensor->dl_tensor.data = pImage;
+      dltensor->dl_tensor.ctx.device_type = kDLGPU;
+      dltensor->dl_tensor.ctx.device_id = gpu_id_;
+      dltensor->dl_tensor.ndim = 3;
+      dltensor->dl_tensor.dtype.code = kDLUInt;
+      dltensor->dl_tensor.dtype.bits = 8;
+      dltensor->dl_tensor.shape = new int64_t[3];
+      dltensor->dl_tensor.shape[0] = nHeight;
+      dltensor->dl_tensor.shape[1] = nWidth;
+      dltensor->dl_tensor.shape[2] = 3;
+      dltensor->dl_tensor.strides = new int64_t[3];
+      dltensor->dl_tensor.strides[0] = nWidth * 3;
+      dltensor->dl_tensor.strides[1] = 3;
+      dltensor->dl_tensor.strides[2] = 1;
+
+      return dltensor;
 
     } else {
       pImage = new uint8_t[nFrameSize];
       copy_image_cpu(pTmpImage, pImage, 3 * nHeight, nWidth);
+      DLManagedTensor *dltensor = new DLManagedTensor;
+      dltensor->dl_tensor.data = pImage;
+      dltensor->dl_tensor.ctx.device_type = kDLCPU;
+      // dltensor->dl_tensor.ctx.device_id = gpu_id_;
+      dltensor->dl_tensor.ndim = 3;
+      dltensor->dl_tensor.dtype.code = kDLUInt;
+      dltensor->dl_tensor.dtype.bits = 8;
+      dltensor->dl_tensor.shape = new int64_t[3];
+      dltensor->dl_tensor.shape[0] = nHeight;
+      dltensor->dl_tensor.shape[1] = nWidth;
+      dltensor->dl_tensor.shape[2] = 3;
+      dltensor->dl_tensor.strides = new int64_t[3];
+      dltensor->dl_tensor.strides[0] = nWidth * 3;
+      dltensor->dl_tensor.strides[1] = 3;
+      dltensor->dl_tensor.strides[2] = 1;
     }
-
-    DLManagedTensor *dltensor = new DLManagedTensor;
-    dltensor->dl_tensor.data = pImage;
-    
-
+    // DLManagedTensor *dltensor = new DLManagedTensor;
+    // dltensor->dl_tensor.data = pImage;
   };
-}
+};
+
+// extern "C" {
+// VideoCapture *video(std::string input_file, int gpu_id, int h = 0, int w = 0, bool gpu_output = false) {
+//   return new VideoCapture(input_file, gpu_id, std::vector<int>{h, w}, gpu_output);
+// }
+
+// DLManagedTensor *read(VideoCapture *video) { return video->read(); }
+// }
