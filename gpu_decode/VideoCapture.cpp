@@ -3,13 +3,9 @@
 #include "Utils/ColorSpace.h"
 #include "Utils/FFmpegDemuxer.h"
 #include "Utils/NvCodecUtils.h"
-#include "include/blockingconcurrentqueue.h"
-#include <algorithm>
-#include <chrono>
 #include <cuda.h>
 #include <deque>
 #include <dlpack/dlpack.h>
-#include <functional>
 #include <iostream>
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -17,12 +13,9 @@
 #include <libavutil/parseutils.h>
 #include <libswscale/swscale.h>
 #include <memory>
-#include <mutex>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <string>
-#include <thread>
-#include <utility>
 #include <vector>
 
 simplelogger::Logger *logger = simplelogger::LoggerFactory::CreateConsoleLogger();
@@ -114,7 +107,7 @@ struct VideoCapture {
                         FFmpeg2NvCodecId(demuxer->GetVideoCodec()), nullptr, false, false, &cropRect, &resizeDim_);
   }
 
-  DLManagedTensor *read() {
+  void *read() {
 
     nFrameReturned = 0;
 
@@ -123,7 +116,7 @@ struct VideoCapture {
       dec->Decode(pVideo, nVideoBytes, &ppFrame, &nFrameReturned);
       if (!nVideoBytes) {
         stop = true;
-        return cv::Mat();
+        return NULL;
       }
     }
     nFrame += nFrameReturned;
@@ -156,6 +149,7 @@ struct VideoCapture {
       dltensor->dl_tensor.ndim = 3;
       dltensor->dl_tensor.dtype.code = kDLUInt;
       dltensor->dl_tensor.dtype.bits = 8;
+      dltensor->dl_tensor.dtype.lanes = 1;
       dltensor->dl_tensor.shape = new int64_t[3];
       dltensor->dl_tensor.shape[0] = nHeight;
       dltensor->dl_tensor.shape[1] = nWidth;
@@ -177,6 +171,7 @@ struct VideoCapture {
       dltensor->dl_tensor.ndim = 3;
       dltensor->dl_tensor.dtype.code = kDLUInt;
       dltensor->dl_tensor.dtype.bits = 8;
+      dltensor->dl_tensor.dtype.lanes = 1;
       dltensor->dl_tensor.shape = new int64_t[3];
       dltensor->dl_tensor.shape[0] = nHeight;
       dltensor->dl_tensor.shape[1] = nWidth;
@@ -185,6 +180,7 @@ struct VideoCapture {
       dltensor->dl_tensor.strides[0] = nWidth * 3;
       dltensor->dl_tensor.strides[1] = 3;
       dltensor->dl_tensor.strides[2] = 1;
+      return dltensor;
     }
     // DLManagedTensor *dltensor = new DLManagedTensor;
     // dltensor->dl_tensor.data = pImage;
@@ -197,9 +193,10 @@ PYBIND11_MODULE(video, m) {
   py::class_<VideoCapture>(m, "VideoCapture")
       .def(py::init<std::string, int, std::vector<int>, bool>())
       .def("read", &VideoCapture::read)
-      .def_readonly("is_stop", &VideoCapture::stop);
-  .def_static("to_capsule", [](DLManagedTensor *dltenor) {
-    auto pybind_capsule = py::capsule(dltensor, "dltensor", nullptr);
-    return pybind_capsule;
-  });
+      .def_readonly("is_stop", &VideoCapture::stop)
+      .def_static("to_capsule", [](void *dltensor) {
+        auto pybind_capsule = py::capsule(dltensor, "dltensor", nullptr);
+        return pybind_capsule;
+      });
+  // py::class_<DLManagedTensor *>(m, "tensor", )
 }

@@ -28,7 +28,7 @@ set(DEPENCES_LIBS
 #  list(APPEND DEPENCES_LIBS opencv_core opencv_highgui opencv_imgproc opencv_imgcodecs opencv_dnn opencv_video)
 #  add_subdirectory(learn_decode)
 set(CMAKE_SHARED_LINKER_FLAGS -fPIC)
-add_library(video SHARED VideoCapture.hpp 
+add_library(video SHARED VideoCapture.cpp 
 NvCodec/NvDecoder/NvDecoder.cpp NvCodec/NvDecoder/NvDecoder.h Utils/ColorSpace.cu Utils/ColorSpace.h 
 Utils/FFmpegDemuxer.h NvCodec/NvDecoder/NvDecoder.h Utils/NvCodecUtils.h Utils/Logger.h )
 target_link_libraries(video ${DEPENCES_LIBS})

@@ -20,7 +20,7 @@ LDFLAGS += $(shell pkg-config --libs libavcodec libavutil libavformat opencv4)
 LDFLAGS += $(shell python3-config --ldflags)
 INCLUDES += $(shell pkg-config --cflags libavcodec libavutil libavformat opencv4)
 INCLUDES += $(shell python3-config --cflags)
-#INCLUDES += $(shell python3 -m pybind11.pybind11 --includes)
+INCLUDES += $(shell python3 -m pybind11.pybind11 --includes)
 INCLUDES += -I./pybind11/include
 INCLUDES += -I./dlpack/include
 # Target rules
@@ -34,9 +34,7 @@ NvDecoder.o: NvCodec/NvDecoder/NvDecoder.cpp NvCodec/NvDecoder/NvDecoder.h
 ColorSpace.o: Utils/ColorSpace.cu
 	$(NVCC)   -Xcompiler  -fPIC -O3 $(NVCCFLAGS) -o $@ -c $<
 
-video.o: VideoCapture.hpp Utils/FFmpegDemuxer.h \
-                       NvCodec/NvDecoder/NvDecoder.h Utils/NvCodecUtils.h \
-                       Utils/Logger.h
+video.o: VideoCapture.cpp Utils/FFmpegDemuxer.h NvCodec/NvDecoder/NvDecoder.h Utils/NvCodecUtils.h Utils/Logger.h
 	$(GCC)  -O3 -fPIC $(CCFLAGS) $(INCLUDES) -o $@ -c $<
 
 video: video.o ColorSpace.o NvDecoder.o
