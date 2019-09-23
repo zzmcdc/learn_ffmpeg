@@ -20,22 +20,27 @@ LDFLAGS += $(shell pkg-config --libs libavcodec libavutil libavformat opencv4)
 LDFLAGS += $(shell python3-config --ldflags)
 INCLUDES += $(shell pkg-config --cflags libavcodec libavutil libavformat opencv4)
 INCLUDES += $(shell python3-config --cflags)
+#INCLUDES += $(shell python3 -m pybind11.pybind11 --includes)
+INCLUDES += -I./pybind11/include
+INCLUDES += -I./dlpack/include
 # Target rules
 all: build
 
 build: video
 
 NvDecoder.o: NvCodec/NvDecoder/NvDecoder.cpp NvCodec/NvDecoder/NvDecoder.h
-	$(GCC)  -fPIC $(CCFLAGS) $(INCLUDES) -o $@ -c $<
+	$(GCC) -O3 -fPIC $(CCFLAGS) $(INCLUDES) -o $@ -c $<
 
 ColorSpace.o: Utils/ColorSpace.cu
-	$(NVCC)   -Xcompiler  -fPIC  $(NVCCFLAGS) -o $@ -c $<
+	$(NVCC)   -Xcompiler  -fPIC -O3 $(NVCCFLAGS) -o $@ -c $<
 
-video.o: VideoCapture.cpp Utils/FFmpegDemuxer.h NvCodec/NvDecoder/NvDecoder.h Utils/NvCodecUtils.h Utils/Logger.h VideoCapture.hpp
-	$(GCC)   -fPIC $(CCFLAGS) $(INCLUDES) -o $@ -c $<
+video.o: VideoCapture.hpp Utils/FFmpegDemuxer.h \
+                       NvCodec/NvDecoder/NvDecoder.h Utils/NvCodecUtils.h \
+                       Utils/Logger.h
+	$(GCC)  -O3 -fPIC $(CCFLAGS) $(INCLUDES) -o $@ -c $<
 
 video: video.o ColorSpace.o NvDecoder.o
-	$(GCC) -shared   -fPIC $(CCFLAGS) video.o ColorSpace.o NvDecoder.o -o video`python3-config --extension-suffix` $(LDFLAGS)
+	$(GCC) -shared  -O3 -fPIC $(CCFLAGS) video.o ColorSpace.o NvDecoder.o -o video`python3-config --extension-suffix` $(LDFLAGS)
 
 clean:
 	rm -rf video`python3-config --extension-suffix` video.o ColorSpace.o NvDecoder.o

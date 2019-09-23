@@ -18,6 +18,8 @@
 #include <libswscale/swscale.h>
 #include <memory>
 #include <mutex>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 #include <string>
 #include <thread>
 #include <utility>
@@ -189,10 +191,15 @@ struct VideoCapture {
   };
 };
 
-// extern "C" {
-// VideoCapture *video(std::string input_file, int gpu_id, int h = 0, int w = 0, bool gpu_output = false) {
-//   return new VideoCapture(input_file, gpu_id, std::vector<int>{h, w}, gpu_output);
-// }
+namespace py = pybind11;
 
-// DLManagedTensor *read(VideoCapture *video) { return video->read(); }
-// }
+PYBIND11_MODULE(video, m) {
+  py::class_<VideoCapture>(m, "VideoCapture")
+      .def(py::init<std::string, int, std::vector<int>, bool>())
+      .def("read", &VideoCapture::read)
+      .def_readonly("is_stop", &VideoCapture::stop);
+  .def_static("to_capsule", [](DLManagedTensor *dltenor) {
+    auto pybind_capsule = py::capsule(dltensor, "dltensor", nullptr);
+    return pybind_capsule;
+  });
+}

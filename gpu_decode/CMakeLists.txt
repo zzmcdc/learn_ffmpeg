@@ -9,6 +9,7 @@ include_directories(include)
 include_directories(dlpack/include)
 include_directories(/usr/local/cuda/include)
 include_directories(NvCodec)
+include_directories(pybind11/include)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++11")
 set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 
