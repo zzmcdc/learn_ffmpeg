@@ -1,0 +1,368 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "hwacc"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_executable",
+			"include_directories"
+		],
+		"files" : 
+		[
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 13,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 7,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : " "
+				},
+				{
+					"fragment" : "-std=gnu++14"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 2,
+					"path" : "/usr/local/include/opencv4/opencv"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "/usr/local/include/opencv4"
+				}
+			],
+			"language" : "CXX",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		}
+	],
+	"id" : "hwacc::@6890427a1f51a3e7e1df",
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "-rdynamic",
+				"role" : "flags"
+			},
+			{
+				"fragment" : "-lavutil",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lavcodec",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lavformat",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lavdevice",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lavfilter",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lswscale",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lswresample",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lpostproc",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_gapi",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_stitching",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_cudaobjdetect",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_videostab",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_quality",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_stereo",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_img_hash",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_hdf",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_freetype",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_xphoto",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_dpm",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_xfeatures2d",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_shape",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_bioinspired",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_aruco",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_cudabgsegm",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_bgsegm",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_structured_light",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_phase_unwrapping",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_superres",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_cudaoptflow",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_optflow",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_cudacodec",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_fuzzy",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_xobjdetect",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_face",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_photo",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_rgbd",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_surface_matching",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_cudalegacy",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_objdetect",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_hfs",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_tracking",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_datasets",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_ml",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_ximgproc",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_video",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_saliency",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_cudaimgproc",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_cudafeatures2d",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_cudawarping",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_cudafilters",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_cudaarithm",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_reg",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_line_descriptor",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_plot",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_ccalib",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_highgui",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_videoio",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_imgcodecs",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_cudastereo",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_calib3d",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_features2d",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_imgproc",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_flann",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_core",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lopencv_cudev",
+				"role" : "libraries"
+			}
+		],
+		"language" : "CXX"
+	},
+	"name" : "hwacc",
+	"nameOnDisk" : "hwacc",
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "hwacc.cpp",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "EXECUTABLE"
+}

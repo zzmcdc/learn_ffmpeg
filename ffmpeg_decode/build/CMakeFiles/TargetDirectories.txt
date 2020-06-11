@@ -1,0 +1,4 @@
+/home/zhao/work/learn/learn_ffmpeg/ffmpeg_decode/build/CMakeFiles/rebuild_cache.dir
+/home/zhao/work/learn/learn_ffmpeg/ffmpeg_decode/build/CMakeFiles/hwacc.dir
+/home/zhao/work/learn/learn_ffmpeg/ffmpeg_decode/build/CMakeFiles/edit_cache.dir
+/home/zhao/work/learn/learn_ffmpeg/ffmpeg_decode/build/CMakeFiles/hello_world.dir

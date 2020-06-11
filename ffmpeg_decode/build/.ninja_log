@@ -1,0 +1,13 @@
+# ninja log v5
+0	470	0	CMakeFiles/hello_world.dir/hello_world.c.o	9f97376cb049df31
+471	1128	0	hello_world	666c5795dd60ae94
+0	135	0	CMakeFiles/hello_world.dir/hello_world.c.o	9f97376cb049df31
+135	359	0	hello_world	666c5795dd60ae94
+0	150	0	CMakeFiles/hello_world.dir/hello_world.c.o	9f97376cb049df31
+150	387	0	hello_world	666c5795dd60ae94
+0	418	0	CMakeFiles/hello_world.dir/hello_world.cc.o	602532f0402410e9
+419	633	0	hello_world	e4468a4555a0179d
+1	366	0	CMakeFiles/hello_world.dir/hello_world.cc.o	602532f0402410e9
+366	606	0	hello_world	e4468a4555a0179d
+0	241	0	CMakeFiles/hello_world.dir/hello_world.cc.o	602532f0402410e9
+241	429	0	hello_world	e4468a4555a0179d
