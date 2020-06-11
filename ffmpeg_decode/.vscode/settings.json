@@ -76,5 +76,6 @@
     "queue": "cpp",
     "set": "cpp",
     "string": "cpp"
-  }
+  },
+  "workbench.preferredLightColorTheme": "Default Dark+"
 }
